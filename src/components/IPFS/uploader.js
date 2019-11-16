@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Component } from 'react'
 import { Title } from '../Typography/Basic'
 import TopBar from '../Basic/TopBar'
 import styled from '@emotion/styled'
@@ -28,7 +28,6 @@ class Uploader {
       // provide the jwt within an authorization header
     })
   }
-
   // pins a given hash
   pinHash(hash) {
     this.ipfsapi.pin.add(hash, function(err, response) {
@@ -39,24 +38,26 @@ class Uploader {
       }
     })
   }
-
   // TODO(postables): add a call to upload files
 }
 
-function IPFSUploader(userOpts) {
-  let containerState
-
-  const upl = new Uploader(userOpts)
-  return (
-    <NameContainer>
-      <TopBar>
-        <Title>IPFS Uploader</Title>
-        <RightBar>
-          Upload files or pin content to IPFS through different IPFS providers
-        </RightBar>
-      </TopBar>
-    </NameContainer>
-  )
+class IPFSUploader extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = { date: new Date() }
+  }
+  render() {
+    return (
+      <NameContainer>
+        <TopBar>
+          <Title>IPFS Uploader</Title>
+          <RightBar>
+            Upload files or pin content to IPFS through different IPFS providers
+          </RightBar>
+        </TopBar>
+      </NameContainer>
+    )
+  }
 }
 
 export default IPFSUploader
