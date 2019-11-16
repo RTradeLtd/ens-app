@@ -57,10 +57,10 @@ class IPFSUploader extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      host: 'https://dev.api.ipfs.temporal.cloud',
+      host: 'dev.api.ipfs.temporal.cloud',
       port: '443',
-      apiPath: '/api/v0',
-      protocol: '443',
+      apiPath: '/api/v0/',
+      protocol: 'https',
       headers: {},
       hash: ''
     }
@@ -70,7 +70,8 @@ class IPFSUploader extends React.Component {
     const upl = new Uploader({
       host: this.state.host,
       port: this.state.port,
-      'api-path': this.state.apiPath,
+      apiPath: this.state.apiPath,
+      protocol: this.state.protocol,
       headers: this.state.headers
     })
     upl.pinHash(this.state.hash)
