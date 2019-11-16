@@ -3,9 +3,19 @@ import { Title } from '../Typography/Basic'
 import TopBar from '../Basic/TopBar'
 import styled from '@emotion/styled'
 import NameContainer from '../Basic/MainContainer'
+import Button from '../Forms/Button'
+import DefaultInput from '../Forms/Input'
+import mq from 'mediaQuery'
 
 var ipfsClient = require('ipfs-http-client')
-
+const Input = styled(DefaultInput)`
+  width: 100%;
+  margin-right: 20px;
+  margin-bottom: 20px;
+  ${mq.small`
+    margin-bottom: 0;
+  `}
+`
 const RightBar = styled('div')`
   display: flex;
   align-items: center;
@@ -45,13 +55,26 @@ class IPFSUploader extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      date: new Date(),
-      host: '',
-      port: '',
-      'api-path': '',
-      protocol: '',
-      headers: {}
+      host: 'https://dev.api.ipfs.temporal.cloud',
+      port: '443',
+      apiPath: '/api/v0',
+      protocol: '443',
+      headers: {},
+      hash: ''
     }
+  }
+
+  pinHash() {
+    const upl = new Uploader({
+      host: this.state.host,
+      port: this.state.port,
+      'api-path': this.state.apiPath,
+      headers: this.state.headers
+    })
+    upl.pinHash(this.state.hash)
+  }
+  updateHash(e) {
+    this.setState({ hash: e.target.value })
   }
   render() {
     return (
@@ -62,6 +85,13 @@ class IPFSUploader extends React.Component {
             Upload files or pin content to IPFS through different IPFS providers
           </RightBar>
         </TopBar>
+        <Input
+          value={this.state.hash}
+          onChange={this.updateHash.bind(this)}
+          placeholder="enter hash to pin"
+          large
+        />
+        <Button onClick={this.pinHash.bind(this)}>Pin Hash</Button>
       </NameContainer>
     )
   }
