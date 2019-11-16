@@ -44,7 +44,14 @@ class Uploader {
 class IPFSUploader extends React.Component {
   constructor(props) {
     super(props)
-    this.state = { date: new Date() }
+    this.state = {
+      date: new Date(),
+      host: '',
+      port: '',
+      'api-path': '',
+      protocol: '',
+      headers: {}
+    }
   }
   render() {
     return (
