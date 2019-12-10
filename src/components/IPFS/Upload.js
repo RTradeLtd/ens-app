@@ -1,7 +1,9 @@
 import React, { Component } from 'react'
 import Dropzone from './Dropzone'
 import styled from '@emotion/styled'
-import Loading from "./Loading";
+import Loading from './Loading'
+
+var ipfsClient = require('ipfs-http-client')
 
 const Container = styled('div')`
   display: flex;
@@ -101,28 +103,40 @@ const Button = styled('button')`
 
 class Upload extends Component {
   constructor(props) {
-    super(props);
+    super(props)
+    this.ipfsapi = ipfsClient({
+      // the hostname (or ip address) of the endpoint providing the ipfs api
+      host: props.host,
+      // the port to connect on
+      port: props.port,
+      'api-path': props.apiPath,
+      // the protocol, https for security
+      protocol: props.protocol,
+      headers: props.headers
+      // provide the jwt within an authorization header
+    })
     this.state = {
       files: [],
       uploading: false,
       loading: {},
-      successfullUploaded: false
-    };
+      successfullUploaded: false,
+      new_hash: null
+    }
 
-    this.onFilesAdded = this.onFilesAdded.bind(this);
-    this.uploadFiles = this.uploadFiles.bind(this);
-    this.sendRequest = this.sendRequest.bind(this);
-    this.renderActions = this.renderActions.bind(this);
+    this.onFilesAdded = this.onFilesAdded.bind(this)
+    this.uploadFiles = this.uploadFiles.bind(this)
+    this.sendRequest = this.sendRequest.bind(this)
+    this.renderActions = this.renderActions.bind(this)
   }
 
   onFilesAdded(files) {
     this.setState(prevState => ({
       files: prevState.files.concat(files)
-    }));
+    }))
   }
 
   renderProgress(file) {
-    const loading= this.state.loading[file.name];
+    const loading = this.state.loading[file.name]
     if (this.state.uploading || this.state.successfullUploaded) {
       return (
         <LoadingWrapper>
@@ -131,12 +145,11 @@ class Upload extends Component {
             alt="done"
             src="baseline-check_circle_outline-24px.svg"
             style={{
-              opacity:
-                loading && loading.state === "done" ? 0.5 : 0
+              opacity: loading && loading.state === 'done' ? 0.5 : 0
             }}
           />
         </LoadingWrapper>
-      );
+      )
     }
   }
 
@@ -150,7 +163,7 @@ class Upload extends Component {
         >
           Clear
         </Button>
-      );
+      )
     } else {
       return (
         <Button
@@ -159,62 +172,71 @@ class Upload extends Component {
         >
           Upload
         </Button>
-      );
+      )
     }
   }
 
   async uploadFiles() {
-    this.setState({ loading: {}, uploading: true });
-    const promises = [];
+    this.setState({ loading: {}, uploading: true })
+    const promises = []
     this.state.files.forEach(file => {
-      promises.push(this.sendRequest(file));
-    });
+      promises.push(this.sendRequest(file))
+    })
     try {
-      await Promise.all(promises);
-  
-      this.setState({ successfullUploaded: true, uploading: false });
+      await Promise.all(promises)
+
+      this.setState({ successfullUploaded: true, uploading: false })
     } catch (e) {
-      // @TODO Need to do proper error handling
-      this.setState({ successfullUploaded: true, uploading: false });
+      // @TODO Better error handling
+      this.setState({ successfullUploaded: true, uploading: false })
     }
   }
 
-  sendRequest(file) {
-    // @TODO Switch to IPFS
+  sendRequest(files) {
     return new Promise((resolve, reject) => {
-      const req = new XMLHttpRequest();
-    
-      req.upload.addEventListener("progress", event => {
-       if (event.lengthComputable) {
-        const copy = { ...this.state.loading };
-        copy[file.name] = {
-         state: "pending",
-         percentage: (event.loaded / event.total) * 100
-        };
-        this.setState({ loading: copy });
-       }
-      });
-       
-      req.upload.addEventListener("load", event => {
-       const copy = { ...this.state.loading };
-       copy[file.name] = { state: "done", percentage: 100 };
-       this.setState({ loading: copy });
-       resolve(req.response);
-      });
-       
-      req.upload.addEventListener("error", event => {
-       const copy = { ...this.state.loading };
-       copy[file.name] = { state: "error", percentage: 0 };
-       this.setState({ loading: copy });
-       reject(req.response);
-      });
-    
-      const formData = new FormData();
-      formData.append("file", file, file.name);
-    
-      req.open("POST", "http://localhost:8000/upload");
-      req.send(formData);
-     });
+      const file = [...files][0]
+      let ipfsId
+
+      const fileDetails = {
+        path: file.name,
+        content: file
+      }
+
+      const options = {
+        wrapWithDirectory: true,
+        progress: prog => {
+          // console.log(`received: ${prog}`)
+          const copy = { ...this.state.loading }
+          if (prog.lengthComputable) {
+            copy[file.name] = {
+              state: 'pending',
+              percentage: (event.loaded / event.total) * 100
+            }
+            this.setState({ loading: copy })
+          } else if (prog.load) {
+            copy[file.name] = { state: 'done', percentage: 100 }
+            this.setState({ loading: copy })
+          } else {
+            copy[file.name] = { state: 'error', percentage: 0 }
+            this.setState({ loading: copy })
+          }
+        }
+      }
+
+      this.ipfs
+        .add(fileDetails, options)
+        .then(response => {
+          console.log(response)
+          ipfsId = response[response.length - 1].hash
+          console.log(ipfsId)
+          this.setState({ new_hash: ipfsId })
+          resolve(response)
+        })
+        .catch(err => {
+          console.error(err)
+          reject(response)
+        })
+    })
   }
 
   render() {
@@ -233,14 +255,14 @@ class Upload extends Component {
                   <FileName>{file.name}</FileName>
                   {this.renderProgress(file)}
                 </Row>
-              );
+              )
             })}
           </Files>
         </Content>
-        <Actions>
-          {this.renderActions()}
-        </Actions>
+        <Actions>{this.renderActions()}</Actions>
       </Container>
     )
   }
 }
+
+export default Upload
