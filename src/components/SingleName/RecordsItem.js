@@ -13,6 +13,7 @@ import AddReverseRecord from './AddReverseRecord'
 import AddressLink from '../Links/AddressLink'
 import ContentHashLink from '../Links/ContentHashLink'
 import Pencil from '../Forms/Pencil'
+import Upload from '../Forms/Upload'
 import Bin from '../Forms/Bin'
 import SaveCancel from './SaveCancel'
 import DefaultPendingTx from '../PendingTx'
@@ -24,6 +25,7 @@ import {
 import DetailsItemInput from './DetailsItemInput'
 import { useEditable } from '../hooks'
 import { getOldContentWarning } from './warnings'
+import UploadModal from '../IPFS/UploadModal.js'
 
 const AddressInput = styled(DefaultAddressInput)`
   margin-bottom: 10px;
@@ -295,6 +297,16 @@ class RecordItem extends Component {
               data-testid={`edit-${keyName.toLowerCase()}`}
             />
           </Action>
+          {type !== 'address' ? (
+            <Action>
+              <Upload
+                disabled={true}
+                data-testid={`upload-new-${keyName.toLowerCase()}`}
+              />
+            </Action>
+          ) : (
+            <div />
+          )}
         </RecordsContent>
         {keyName === 'Address' &&
           value.toLowerCase() === account.toLowerCase() && (
