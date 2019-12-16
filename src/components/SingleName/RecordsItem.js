@@ -26,7 +26,9 @@ import DetailsItemInput from './DetailsItemInput'
 import { useEditable } from '../hooks'
 import { getOldContentWarning } from './warnings'
 import UploadModal from '../IPFS/UploadModal.js'
+import GlobalState from '../../globalState'
 
+const { toggleModal } = useContext(GlobalState)
 const AddressInput = styled(DefaultAddressInput)`
   margin-bottom: 10px;
 `
@@ -82,6 +84,10 @@ export const RecordsValue = styled(DetailsValue)`
 `
 
 const EditRecord = styled('div')`
+  width: 100%;
+`
+
+const ActionsContainer = styled('div')`
   width: 100%;
 `
 
@@ -210,11 +216,28 @@ const Editable = ({
                   </Mutation>
                 </Action>
               ) : (
-                <Actionable
-                  startEditing={startEditing}
-                  keyName={keyName}
-                  value={value}
-                />
+                <ActionsContainer>
+                  <Actionable
+                    startEditing={startEditing}
+                    keyName={keyName}
+                    value={value}
+                  />
+                  <Action>
+                    <Upload
+                      onClick={() =>
+                        toggleModal({
+                          name: 'upload',
+                          mutation: mutate,
+                          explanation: explanation,
+                          cancel: () => {
+                            toggleModal({ name: 'confirm' })
+                          }
+                        })
+                      }
+                      data-testid={`upload-new-${keyName.toLowerCase()}`}
+                    />
+                  </Action>
+                </ActionsContainer>
               )}
             </RecordsContent>
             {editing ? (
@@ -297,6 +320,7 @@ class RecordItem extends Component {
               data-testid={`edit-${keyName.toLowerCase()}`}
             />
           </Action>
+          <Modal />
           {type !== 'address' ? (
             <Action>
               <Upload

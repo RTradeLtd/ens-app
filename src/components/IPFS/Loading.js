@@ -4,7 +4,7 @@ import styled from '@emotion/styled'
 const LoadingBar = styled('div')`
   width: 100%;
   height: 8px;
-  background-color: rgb(183, 155, 229);
+  background-color: #3252c8;
   border-radius: 5px;
 `
 
@@ -23,9 +23,7 @@ class Loading extends Component {
   render() {
     return (
       <LoadingBar>
-        <Loaded
-          style={{ width: this.props.loaded + '%' }}
-        />
+        <Loaded style={{ width: this.props.loaded + '%' }} />
       </LoadingBar>
     )
   }
